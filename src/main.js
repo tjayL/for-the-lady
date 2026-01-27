@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import "./style.css";
+import Scene from "./scenes/Scene"
 
 const config = {
   type: Phaser.AUTO,
@@ -7,24 +8,9 @@ const config = {
   height: 600,
   backgroundColor: "#1d1d1d",
   parent: "app",
-  scene: {
-    preload,
-    create,
-    update
-  }
+  scene: [Scene],
 };
 
-function preload() {
-  // load assets here
-}
+const game = new Phaser.Game(config);
 
-function create() {
-  this.add.text(400, 300, "Phaser + Vite 🚀", {
-    fontSize: "32px",
-    color: "#ffffff"
-  }).setOrigin(0.5);
-}
 
-function update() {}
-
-new Phaser.Game(config);
