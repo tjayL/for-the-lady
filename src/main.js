@@ -4,10 +4,18 @@ import Scene from "./scenes/Scene"
 
 const config = {
   type: Phaser.AUTO,
-  width: 800,
-  height: 600,
-  backgroundColor: "#1d1d1d",
+  width: 1200,
+  height: 800,
+  backgroundColor: "#000000",
   parent: "app",
+  pixelArt: true,
+   physics: {
+    default: "arcade",
+    arcade: {
+      gravity: { y: 0 }, 
+      debug: false         
+    }
+  },
   scene: [Scene],
 };
 
