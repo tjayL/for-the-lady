@@ -5,6 +5,8 @@ export default class Scene extends Phaser.Scene {
     super("Scene");
   }
 
+  
+
   preload() {
     // load the tilemap JSON
     this.load.tilemapTiledJSON("map","/assets/tilemap/tilemap.json");
@@ -23,6 +25,16 @@ export default class Scene extends Phaser.Scene {
       frameWidth: 48,
       frameHeight: 48,
     });
+
+    // load font
+    this.load.bitmapFont(
+      "pixelFont",
+      "/assets/font/monogram-bitmap.png",
+      "/assets/font/monogram-bitmap.json"
+    );
+
+    // load dialogue box
+    this.load.image("dialogueBox", "/assets/dialogue/dialogue-box.PNG");
 
   }
 
@@ -63,7 +75,7 @@ export default class Scene extends Phaser.Scene {
     // create player at spawn
     this.player = this.physics.add.sprite(spawnPoint.x, spawnPoint.y, "player");
     this.player.setOrigin(0, 0); // aligns top-left with tile
-    this.player.setScale(1);
+    this.player.setScale(1.5);
     this.player.setCollideWorldBounds(true);
 
     // Make physics world match map size
@@ -74,7 +86,7 @@ export default class Scene extends Phaser.Scene {
     this.cameras.main.startFollow(this.player);
     this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
     this.cameras.main.setRoundPixels(true); 
-    this.cameras.main.setZoom(2); // zoom in
+    this.cameras.main.setZoom(3); // zoom in
       
 
     // walk down
@@ -137,11 +149,62 @@ export default class Scene extends Phaser.Scene {
       frameRate: 4,
       repeat: -1
     });
-        
+      
+    // create dialogue box image
+    this.dialogueBox = this.add.image(600, 450, "dialogueBox")
+      .setScrollFactor(0)    
+      .setDepth(1000)
+      .setScale(0.2)
+      .setVisible(false);
 
-      }
+    // Dialogue text placeholders
+    this.dialogue1Text = this.add.text(500, 460, "The Sunflowers speak: The lady has arrived! \n Omg guys she is so beautiful.", {
+      font: "10px Arial",
+      fill: "#ffffff",
+    })
+    .setScrollFactor(0)
+    .setDepth(1001)
+    .setVisible(false);
+
+    this.dialogue2Text = this.add.text(500, 460, "The Mushrooms speak: The lady is here! \n Everyone be on your best behaviour!!!", {
+      font: "10px Arial",
+      fill: "#ffffff",
+    })
+    .setScrollFactor(0)
+    .setDepth(1001)
+    .setVisible(false);
+
+    this.dialogueZones = [];
+
+    objectLayer.objects.forEach(obj => {
+    if (obj.name === "dialogue1" || obj.name === "dialogue2") {
+      const zone = this.add.zone(obj.x, obj.y, obj.width, obj.height)
+        .setOrigin(0)
+        .setRectangleDropZone(obj.width, obj.height);
+
+      this.physics.world.enable(zone);
+      zone.body.setAllowGravity(false);
+      zone.body.moves = false;
+
+      this.dialogueZones.push(zone); // store the zone
+
+      this.physics.add.overlap(this.player, zone, () => {
+        this.dialogueBox.setVisible(true);
+
+        if (obj.name === "dialogue1") {
+          this.dialogue1Text.setVisible(true);
+          this.dialogue2Text.setVisible(false);
+        } else if (obj.name === "dialogue2") {
+          this.dialogue2Text.setVisible(true);
+          this.dialogue1Text.setVisible(false);
+        }
+      }, null, this);
+    }
+  });
+  }
 
   update() {
+    
     const speed = 100; 
     const keys = this.input.keyboard.createCursorKeys();
 
@@ -186,6 +249,20 @@ export default class Scene extends Phaser.Scene {
             this.player.anims.play("idle-down", true);
         }
     }
+  
+    let inZone = false;
+  this.dialogueZones.forEach(zone => {
+    if (Phaser.Geom.Rectangle.Overlaps(this.player.getBounds(), zone.getBounds())) {
+      inZone = true;
+    }
+  });
+
+  if (!inZone) {
+    this.dialogueBox.setVisible(false);
+    this.dialogue1Text.setVisible(false);
+    this.dialogue2Text.setVisible(false);
+  }
+
 }
 
 
