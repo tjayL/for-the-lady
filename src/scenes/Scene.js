@@ -5,43 +5,33 @@ export default class Scene extends Phaser.Scene {
     super("Scene");
   }
 
-  
-
   preload() {
-    // load the tilemap JSON
-    this.load.tilemapTiledJSON("map","/assets/tilemap/tilemap.json");
+    // Tilemap
+    this.load.tilemapTiledJSON("map", "/assets/tilemap/tilemap.json");
 
-    // load tilesheets
-    this.load.image("grassTiles", "/assets/tiles/Grass.png", { frameWidth: 16, frameHeight: 16 });
-    this.load.image("plantTiles", "/assets/tiles/Basic Grass Biom things 1.png", { frameWidth: 16, frameHeight: 16 });
-    this.load.image("otherPlantTiles", "/assets/tiles/Basic Plants.png", { frameWidth: 16, frameHeight: 16 });
-    this.load.image("eggTiles", "/assets/tiles/Egg item.png", { frameWidth: 16, frameHeight: 16 });
-    this.load.image("dirtTiles", "/assets/tiles/Tilled_Dirt_Wide.png", { frameWidth: 16, frameHeight: 16 });
-    this.load.image("waterTiles", "/assets/tiles/Water.png", { frameWidth: 16, frameHeight: 16 });
-    this.load.image("bridgeTiles", "/assets/tiles/Wood Bridge.png", { frameWidth: 16, frameHeight: 16 });
+    // Tilesets
+    this.load.image("grassTiles", "/assets/tiles/Grass.png");
+    this.load.image("plantTiles", "/assets/tiles/Basic Grass Biom things 1.png");
+    this.load.image("otherPlantTiles", "/assets/tiles/Basic Plants.png");
+    this.load.image("eggTiles", "/assets/tiles/Egg item.png");
+    this.load.image("dirtTiles", "/assets/tiles/Tilled_Dirt_Wide.png");
+    this.load.image("waterTiles", "/assets/tiles/Water.png");
+    this.load.image("bridgeTiles", "/assets/tiles/Wood Bridge.png");
 
-    // load spritesheet
-    this.load.spritesheet("player", "/assets/player/spritesheet.png", {
-      frameWidth: 48,
-      frameHeight: 48,
-    });
+    // Player spritesheet
+    this.load.spritesheet("player", "/assets/player/spritesheet.png", { frameWidth: 48, frameHeight: 48 });
 
-    // load font
-    this.load.bitmapFont(
-      "pixelFont",
-      "/assets/font/monogram-bitmap.png",
-      "/assets/font/monogram-bitmap.json"
-    );
+    // Font
+    this.load.bitmapFont("pixelFont", "/assets/font/monogram-bitmap.png", "/assets/font/monogram-bitmap.json");
 
-    // load dialogue box
+    // Dialogue box
     this.load.image("dialogueBox", "/assets/dialogue/dialogue-box.PNG");
-
   }
 
   create() {
-    const map = this.make.tilemap({key: "map", tilewidth: 16, tileHeight: 16});
-    
-    // add tileset images
+    const map = this.make.tilemap({ key: "map", tilewidth: 16, tileHeight: 16 });
+
+    // Tilesets
     const grassTS = map.addTilesetImage("Grass", "grassTiles");
     const plantTS = map.addTilesetImage("Basic Grass Biom things 1", "plantTiles");
     const otherPlantTS = map.addTilesetImage("Basic Plants", "otherPlantTiles");
@@ -52,220 +42,213 @@ export default class Scene extends Phaser.Scene {
 
     const tilesets = [grassTS, plantTS, otherPlantTS, eggTS, dirtTS, waterTS, bridgeTS];
 
-    // create layers
-    const waterLayer = map.createLayer("water", tilesets, 0, 0);
-    const grassLayer = map.createLayer("grass", tilesets, 0, 0);
-    const pathwayLayer = map.createLayer("pathway", tilesets, 0, 0);
-    const objectsLayer = map.createLayer("objects", tilesets, 0, 0);
+    // Layers
+    map.createLayer("water", tilesets, 0, 0);
+    map.createLayer("grass", tilesets, 0, 0);
+    map.createLayer("pathway", tilesets, 0, 0);
+    map.createLayer("objects", tilesets, 0, 0);
 
-    
+    // Camera
+    this.cameras.main.setRoundPixels(true).setZoom(2);
+    this.cameras.main.centerOn(map.widthInPixels / 2, map.heightInPixels / 2);
 
-    // camera zoom
-    this.cameras.main.setRoundPixels(true); 
-    this.cameras.main.setZoom(2); 
-    
-    const mapWidth = map.widthInPixels;
-    const mapHeight = map.heightInPixels;
-    this.cameras.main.centerOn(mapWidth / 2, mapHeight / 2);
-
-    // Get spawn point from object layer
+    // Player spawn
     const objectLayer = map.getObjectLayer("GameObjects");
     const spawnPoint = objectLayer.objects.find(obj => obj.name === "spawn");
 
-    // create player at spawn
-    this.player = this.physics.add.sprite(spawnPoint.x, spawnPoint.y, "player");
-    this.player.setOrigin(0, 0); // aligns top-left with tile
-    this.player.setScale(1.5);
-    this.player.setCollideWorldBounds(true);
+    this.player = this.physics.add.sprite(spawnPoint.x, spawnPoint.y, "player")
+      .setOrigin(0, 0)
+      .setScale(1.5)
+      .setCollideWorldBounds(true);
 
-    // Make physics world match map size
     this.physics.world.bounds.width = map.widthInPixels;
     this.physics.world.bounds.height = map.heightInPixels;
-
-    // Make camera follow player
     this.cameras.main.startFollow(this.player);
-    this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
-    this.cameras.main.setRoundPixels(true); 
-    this.cameras.main.setZoom(3); // zoom in
-      
+    this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels).setZoom(3);
 
-    // walk down
-    this.anims.create({
-        key: "walk-down",
-        frames: this.anims.generateFrameNumbers("player", { start: 2, end: 3 }),
-        frameRate: 10,
+    this.cursors = this.input.keyboard.createCursorKeys();
+
+    // Animations
+    const animsData = [
+      { key: "walk-down", start: 2, end: 3 },
+      { key: "walk-up", start: 6, end: 7 },
+      { key: "walk-left", start: 10, end: 11 },
+      { key: "walk-right", start: 14, end: 15 },
+      { key: "idle-down", start: 0, end: 1, frameRate: 4 },
+      { key: "idle-up", start: 5, end: 6, frameRate: 4 },
+      { key: "idle-left", start: 8, end: 9, frameRate: 4 },
+      { key: "idle-right", start: 12, end: 13, frameRate: 4 },
+    ];
+
+    animsData.forEach(a => {
+      this.anims.create({
+        key: a.key,
+        frames: this.anims.generateFrameNumbers("player", { start: a.start, end: a.end }),
+        frameRate: a.frameRate || 10,
         repeat: -1
+      });
     });
 
-    // walk left
-    this.anims.create({
-        key: "walk-left",
-        frames: this.anims.generateFrameNumbers("player", { start: 10, end: 11 }),
-        frameRate: 10,
-        repeat: -1
-    });
-
-    // walk right
-    this.anims.create({
-        key: "walk-right",
-        frames: this.anims.generateFrameNumbers("player", { start: 14, end: 15 }),
-        frameRate: 10,
-        repeat: -1
-    });
-
-    // walk up
-    this.anims.create({
-        key: "walk-up",
-        frames: this.anims.generateFrameNumbers("player", { start: 6, end: 7 }),
-        frameRate: 10,
-        repeat: -1
-    });
-
-    // Idle animations
-    this.anims.create({
-      key: "idle-down",
-      frames: this.anims.generateFrameNumbers("player", { start: 0, end: 1 }),
-      frameRate: 4,
-      repeat: -1
-    });
-
-    this.anims.create({
-      key: "idle-left",
-      frames: this.anims.generateFrameNumbers("player", { start: 8, end: 9 }),
-      frameRate: 4,
-      repeat: -1
-    });
-
-    this.anims.create({
-      key: "idle-right",
-      frames: this.anims.generateFrameNumbers("player", { start: 12, end: 13 }),
-      frameRate: 4,
-      repeat: -1
-    });
-
-    this.anims.create({
-      key: "idle-up",
-      frames: this.anims.generateFrameNumbers("player", { start: 5, end: 6 }),
-      frameRate: 4,
-      repeat: -1
-    });
-      
-    // create dialogue box image
-    this.dialogueBox = this.add.image(600, 450, "dialogueBox")
-      .setScrollFactor(0)    
-      .setDepth(1000)
-      .setScale(0.2)
-      .setVisible(false);
-
-    // Dialogue text placeholders
-    this.dialogue1Text = this.add.text(500, 460, "The Sunflowers speak: The lady has arrived! \n Omg guys she is so beautiful.", {
-      font: "10px Arial",
-      fill: "#ffffff",
-    })
-    .setScrollFactor(0)
-    .setDepth(1001)
-    .setVisible(false);
-
-    this.dialogue2Text = this.add.text(500, 460, "The Mushrooms speak: The lady is here! \n Everyone be on your best behaviour!!!", {
-      font: "10px Arial",
-      fill: "#ffffff",
-    })
-    .setScrollFactor(0)
-    .setDepth(1001)
-    .setVisible(false);
+    // --- Dialogue1 & Dialogue2 ---
+    this.dialogueBox = this.add.image(600, 450, "dialogueBox").setScrollFactor(0).setDepth(1000).setScale(0.2).setVisible(false);
+    this.dialogue1Text = this.add.text(500, 460, "The Sunflowers speak: The lady has arrived!\nOmg guys she is so beautiful.", { font: "10px Arial", fill: "#ffffff" }).setScrollFactor(0).setDepth(1001).setVisible(false);
+    this.dialogue2Text = this.add.text(500, 460, "The Mushrooms speak: The lady is here!\nEveryone be on your best behaviour!!!", { font: "10px Arial", fill: "#ffffff" }).setScrollFactor(0).setDepth(1001).setVisible(false);
 
     this.dialogueZones = [];
-
     objectLayer.objects.forEach(obj => {
-    if (obj.name === "dialogue1" || obj.name === "dialogue2") {
-      const zone = this.add.zone(obj.x, obj.y, obj.width, obj.height)
-        .setOrigin(0)
-        .setRectangleDropZone(obj.width, obj.height);
+      if (obj.name === "dialogue1" || obj.name === "dialogue2") {
+        const zone = this.add.zone(obj.x, obj.y, obj.width, obj.height).setOrigin(0).setRectangleDropZone(obj.width, obj.height);
+        this.physics.world.enable(zone);
+        zone.body.setAllowGravity(false).moves = false;
+        this.dialogueZones.push(zone);
 
-      this.physics.world.enable(zone);
-      zone.body.setAllowGravity(false);
-      zone.body.moves = false;
+        this.physics.add.overlap(this.player, zone, () => {
+          this.dialogueBox.setVisible(true);
+          this.dialogue1Text.setVisible(obj.name === "dialogue1");
+          this.dialogue2Text.setVisible(obj.name === "dialogue2");
+        }, null, this);
+      }
+    });
 
-      this.dialogueZones.push(zone); // store the zone
+    // --- Dialogue3 ---
+    this.dialogue3Box = this.add.image(600, 450, "dialogueBox").setScrollFactor(0).setDepth(1000).setScale(0.2).setVisible(false);
+    this.dialogue3Text = this.add.text(500, 460, "", { font: "10px Arial", fill: "#ffffff" }).setScrollFactor(0).setDepth(1001).setVisible(false);
+    this.interactHint = this.add.text(540, 460, "Press E to interact", { font: "16px Arial", fill: "#ffffff" }).setScrollFactor(0).setDepth(1002).setVisible(false);
 
-      this.physics.add.overlap(this.player, zone, () => {
-        this.dialogueBox.setVisible(true);
+    this.dialogue3Lines = [
+      "Ah! Miss Honorable Lady, I've been \nexpecting you!",
+      "Good googly you really are as stunning as \nthey say (yes YOU not the player sprite)",
+      "Ahem, anyway, I have but one important \nquestion for you.",
+      "On behalf of my creator, will you do him the \nhonour of being his valentine?"
+    ];
+    this.dialogue3Index = 0;
+    this.dialogue3Active = false;
+    this.dialogue3Completed = false;
 
-        if (obj.name === "dialogue1") {
-          this.dialogue1Text.setVisible(true);
-          this.dialogue2Text.setVisible(false);
-        } else if (obj.name === "dialogue2") {
-          this.dialogue2Text.setVisible(true);
-          this.dialogue1Text.setVisible(false);
-        }
-      }, null, this);
+    const dialogue3Obj = objectLayer.objects.find(obj => obj.name === "dialogue3");
+    if (dialogue3Obj) {
+      this.dialogue3Zone = this.add.zone(dialogue3Obj.x, dialogue3Obj.y, dialogue3Obj.width, dialogue3Obj.height).setOrigin(0).setRectangleDropZone(dialogue3Obj.width, dialogue3Obj.height);
+      this.physics.world.enable(this.dialogue3Zone);
+      this.dialogue3Zone.body.setAllowGravity(false).moves = false;
     }
-  });
+
+    // Key E
+    this.keyE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
+
+    // --- Yes/No buttons for dialogue3 ---
+    const centerX = 600, centerY = 450;
+    this.yesButton = this.add.text(centerX - 60, centerY, "Yes", { font: "16px Arial", fill: "#ffffff", backgroundColor: "#ffb6c1", padding: { left:10, right:10, top:5, bottom:5 } }).setOrigin(0.5).setScrollFactor(0).setDepth(1003).setInteractive({ useHandCursor: true });
+    this.noButton = this.add.text(centerX + 60, centerY, "No", { font: "16px Arial", fill: "#ffffff", backgroundColor: "#ffb6c1", padding: { left:10, right:10, top:5, bottom:5 } }).setOrigin(0.5).setScrollFactor(0).setDepth(1003).setInteractive({ useHandCursor: true });
+    this.errorText = this.add.text(centerX, centerY + 40, "Error! Try again! (click yes please)", { font: "14px Arial", fill: "#ff0000" }).setOrigin(0.5).setScrollFactor(0).setDepth(1004).setVisible(false);
+
+    this.yesButton.setVisible(false);
+    this.noButton.setVisible(false);
+    this.errorText.setVisible(false);
+
+    // --- Dialogue4 setup ---
+    this.dialogue4Box = this.add.image(600, 450, "dialogueBox").setScrollFactor(0).setDepth(1000).setScale(0.2).setVisible(false);
+    this.dialogue4Text = this.add.text(500, 460, "", { font: "10px Arial", fill: "#ffffff" }).setScrollFactor(0).setDepth(1001).setVisible(false);
+    this.dialogue4Lines = [
+      "YIPPPEEEEEEEEEEEEEEEEEEEEEEEEE",
+      "On behalf of my creator and this island of \ntalking plants, we are grateful for The Lady's \nanswer!"
+    ];
+    this.dialogue4Index = 0;
+    this.dialogue4Active = false;
+    this.dialogue4Completed = false;
+
+    this.yesButton.on("pointerover", () => this.yesButton.setScale(1.1));
+    this.yesButton.on("pointerout", () => this.yesButton.setScale(1));
+
+    // Yes/No button logic
+      this.yesButton.on("pointerdown", () => {
+      this.dialogue3Box.setVisible(false);
+      this.dialogue3Text.setVisible(false);
+      this.yesButton.setVisible(false);
+      this.noButton.setVisible(false);
+      this.errorText.setVisible(false);
+
+      this.dialogue4Active = true;
+      this.dialogue4Index = 0;
+      this.dialogue4Box.setVisible(true);
+      this.dialogue4Text.setText(this.dialogue4Lines[this.dialogue4Index]).setVisible(true);
+    });
+
+      this.noButton.on("pointerover", () => this.noButton.setScale(1.1));
+      this.noButton.on("pointerout", () => this.noButton.setScale(1));
+
+      this.noButton.on("pointerdown", () => {
+      this.errorText.setVisible(true);
+     });
   }
 
   update() {
-    
-    const speed = 100; 
-    const keys = this.input.keyboard.createCursorKeys();
-
-    // Reset velocity
+    const speed = 100;
+    let moving = false;
     this.player.body.setVelocity(0);
 
-    let moving = false;
+    // Movement
+    if (this.cursors.left.isDown) { this.player.body.setVelocityX(-speed); this.player.anims.play("walk-left", true); moving = true; }
+    else if (this.cursors.right.isDown) { this.player.body.setVelocityX(speed); this.player.anims.play("walk-right", true); moving = true; }
+    if (this.cursors.up.isDown) { this.player.body.setVelocityY(-speed); this.player.anims.play("walk-up", true); moving = true; }
+    else if (this.cursors.down.isDown) { this.player.body.setVelocityY(speed); this.player.anims.play("walk-down", true); moving = true; }
 
-    // Horizontal movement
-    if (keys.left.isDown) {
-        this.player.body.setVelocityX(-speed);
-        this.player.anims.play("walk-left", true);
-        moving = true;
-    } else if (keys.right.isDown) {
-        this.player.body.setVelocityX(speed);
-        this.player.anims.play("walk-right", true);
-        moving = true;
-    }
-
-    // Vertical movement
-    if (keys.up.isDown) {
-        this.player.body.setVelocityY(-speed);
-        this.player.anims.play("walk-up", true);
-        moving = true;
-    } else if (keys.down.isDown) {
-        this.player.body.setVelocityY(speed);
-        this.player.anims.play("walk-down", true);
-        moving = true;
-    }
-
-    // If not moving, play idle based on last animation
     if (!moving) {
-        const currentAnim = this.player.anims.currentAnim;
-        if (currentAnim) {
-            const key = currentAnim.key;
-            if (key.includes("down")) this.player.anims.play("idle-down", true);
-            else if (key.includes("up")) this.player.anims.play("idle-up", true);
-            else if (key.includes("left")) this.player.anims.play("idle-left", true);
-            else if (key.includes("right")) this.player.anims.play("idle-right", true);
-        } else {
-            // Default idle if no previous animation
-            this.player.anims.play("idle-down", true);
-        }
+      const key = this.player.anims.currentAnim?.key || "idle-down";
+      if (key.includes("down")) this.player.anims.play("idle-down", true);
+      else if (key.includes("up")) this.player.anims.play("idle-up", true);
+      else if (key.includes("left")) this.player.anims.play("idle-left", true);
+      else if (key.includes("right")) this.player.anims.play("idle-right", true);
     }
-  
+
+    // Dialogue1 & 2 zones
     let inZone = false;
-  this.dialogueZones.forEach(zone => {
-    if (Phaser.Geom.Rectangle.Overlaps(this.player.getBounds(), zone.getBounds())) {
-      inZone = true;
+    this.dialogueZones.forEach(zone => {
+      if (Phaser.Geom.Rectangle.Overlaps(this.player.getBounds(), zone.getBounds())) inZone = true;
+    });
+    if (!inZone) { this.dialogueBox.setVisible(false); this.dialogue1Text.setVisible(false); this.dialogue2Text.setVisible(false); }
+
+    // Dialogue3 zone
+    if (this.dialogue3Zone && !this.dialogue4Active) {
+      const inZone3 = Phaser.Geom.Rectangle.Overlaps(this.player.getBounds(), this.dialogue3Zone.getBounds());
+      if (inZone3 && !this.dialogue3Completed) this.interactHint.setVisible(!this.dialogue3Active);
+      else this.interactHint.setVisible(false);
+
+      if (inZone3 && Phaser.Input.Keyboard.JustDown(this.keyE)) {
+        if (!this.dialogue3Active && !this.dialogue3Completed) {
+          this.dialogue3Active = true;
+          this.dialogue3Index = 0;
+          this.dialogue3Box.setVisible(true);
+          this.dialogue3Text.setText(this.dialogue3Lines[this.dialogue3Index]).setVisible(true);
+        } else if (this.dialogue3Active) {
+          this.dialogue3Index++;
+          if (this.dialogue3Index < this.dialogue3Lines.length) {
+            this.dialogue3Text.setText(this.dialogue3Lines[this.dialogue3Index]);
+          } else {
+            this.dialogue3Active = false;
+            this.dialogue3Completed = true;
+            this.dialogue3Box.setVisible(false);
+            this.dialogue3Text.setVisible(false);
+            this.yesButton.setVisible(true);
+            this.noButton.setVisible(true);
+          }
+        }
+      }
     }
-  });
 
-  if (!inZone) {
-    this.dialogueBox.setVisible(false);
-    this.dialogue1Text.setVisible(false);
-    this.dialogue2Text.setVisible(false);
+    // Dialogue4 
+    if (this.dialogue4Active && Phaser.Input.Keyboard.JustDown(this.keyE)) {
+      this.dialogue4Index++;
+      if (this.dialogue4Index < this.dialogue4Lines.length) {
+        this.dialogue4Text.setText(this.dialogue4Lines[this.dialogue4Index]);
+      } else {
+        this.dialogue4Active = false;
+        this.dialogue4Completed = true;
+        this.dialogue4Box.setVisible(false);
+        this.dialogue4Text.setVisible(false);
+      }
+    }
   }
-
 }
 
 
 
-  
-}
