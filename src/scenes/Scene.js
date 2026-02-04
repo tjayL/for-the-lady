@@ -257,7 +257,7 @@ export default class Scene extends Phaser.Scene {
       "Ah! Miss Honorable Lady, I've been \nexpecting you!",
       "Good googly you really are as stunning as \nthey say (yes YOU not the player sprite)",
       "Ahem, anyway, I have but one important \nquestion for you.",
-      "On behalf of my creator, will you do him the \n greatest honour of being your valentine?",
+      "On behalf of my creator, will you do him the \ngreatest honour of being your valentine?",
     ];
 
     this.dialogue3Index = 0;
