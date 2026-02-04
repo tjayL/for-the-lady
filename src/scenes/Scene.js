@@ -255,7 +255,7 @@ export default class Scene extends Phaser.Scene {
 
     this.dialogue3Lines = [
       "Ah! Miss Honorable Lady, I've been \nexpecting you!",
-      "Good googly you really are as stunning as \nthey say (yes YOU not the player sprite)",
+      "good googly moogly you really are as \nstunning as they say \n(yes YOU looking at the screen right now)",
       "Ahem, anyway, I have but one important \nquestion for you.",
       "On behalf of my creator, will you do him the \ngreatest honour of being your valentine?",
     ];
@@ -343,7 +343,7 @@ export default class Scene extends Phaser.Scene {
       .setVisible(false);
 
     this.dialogue4Lines = [
-      "YIPPPEEEEEEEEEEEEEEEEEEEEEEEEE",
+      "YIPPPEEEEEEEEEEEEEEEEEEEEEEEEE\nEEEEEEEEEEEEEEEEEEEE",
       "On behalf of my creator and this island of \ntalking plants, we are grateful for The Lady's \nanswer!",
     ];
 
